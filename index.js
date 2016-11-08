@@ -2,14 +2,36 @@ var request = require('request');
 var iconv = require('iconv-lite');
 var cheerio = require('cheerio');
 var mysql = require('mysql');
+var sql = require('mssql');
 var sqlseeting = require('./src/dbconfig.js');
-var connection = mysql.createConnection(sqlseeting);
 var searchUrl = "http://cs.fang.anjuke.com/loupan/yuelu/p1/";
 var id = 0;
 
-connection.connect();
+function sql_connection() {
+    var conn = new sql.Connection(sqlseeting);
+
+    conn.connect().then(function () {
+        var req = new sql.Request(conn);
+        req.query("SELECT * FROM main").then(function (recordset) {
+            console.log(recordset);
+            conn.close();
+        })
+            .catch(function (err) {
+                console.log(err);
+                conn.close();
+            });
+    })
+        .catch(function (err) {
+            console.log(err);
+        });
+}
 
 function getDate(html) {
+
+
+    sql_connection();
+
+
     var $ = cheerio.load(html);
     var length = $('.items-name').length;
     var priceLength = $('.price').length;
@@ -29,7 +51,7 @@ function getDate(html) {
             "money": _price,
             "position": _position
         };
-        writeInSql(insertObj);
+        //writeInSql(insertObj);
     }
 }
 
